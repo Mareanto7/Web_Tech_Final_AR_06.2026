@@ -31,6 +31,14 @@ app.use(session({
   saveUninitialized: false,
 }));
 
+function requireAuth(req, res, next) {
+  if (req.session.userId){
+    next();
+  } else {
+    return res.redirect('/login');
+  }
+}
+
 app.get('/register', (req, res) => {
   res.render('register', { error: null });
 });
@@ -57,7 +65,7 @@ app.post('/login', async (req, res) => {
     return res.render('login', { error: 'Invalid credentials! Please insert correct credentials or register first'});
   }
   // 5. Let's save session ID
-  req.session.userId= user.id
+  req.session.userId = user.id
   // 6. Return them to properties
   return res.redirect('/properties');
 });
@@ -86,6 +94,36 @@ app.post('/register', async (req, res) => {
   await prisma.user.create({ data: {email: email, passwordHash: passwordHash, name: name, surname: surname}});
   // 6. We redirect them to login
   return res.redirect('/login');
+});
+
+app.get('/properties', requireAuth, async (req, res) => {
+  const properties = await prisma.property.findMany();
+  res.render('properties', {properties: properties});
+});
+
+app.get('/properties/new', requireAuth, (req, res) => {
+  res.render('newProperty', {error: null});
+});
+
+app.post('/properties/new', requireAuth, async (req, res) => {
+  // 1. Let's pull data from the form
+  const pname = req.body.propertyName;
+  const street = req.body.streetAddress;
+  const city = req.body.city;
+  const cap = req.body.cap;
+  const type = req.body.type;
+  const province = req.body.province;
+  const country = req.body.country;
+  const maxGuests = parseInt(req.body.maxGuests);
+  const price = parseFloat(req.body.price);
+  // 2. Let's validate the data
+  if(!pname || !street || !city || !cap || !type || !province || !maxGuests || !price){
+    return res.render('newProperty', {error: 'All fields are required' });
+  }
+  // 3. Create the property object
+  await prisma.property.create({ data: {ownerId: req.session.userId, propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price}});
+  // 4. Redirects to properties listing
+  return res.redirect('/properties');
 });
 
 app.listen(PORT, () => console.log(`Express started on port ${PORT}`));

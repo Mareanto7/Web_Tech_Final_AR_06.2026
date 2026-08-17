@@ -1,0 +1,52 @@
+<%- include('head', { title: 'New Property Page' }) -%>
+
+    <h1>New Property Form</h1>
+    <% if (error) { %>
+        <p class="error"><%= error %></p>
+    <% } %>
+    <form method="post" action="/properties/new">
+        <p>
+            <label for="propertyName">Property Name:</label>
+            <input type="text" name="propertyName" id="propertyName">
+        </p>
+        <p>
+            <label for="streetAddress">Street Address:</label>
+            <input type="text" name="streetAddress" id="streetAddress">
+        </p>
+        <p>
+            <label for="city">City:</label>
+            <input type="text" name="city" id="city">
+        </p>
+        <p>
+            <label for="cap">CAP (Italy Only):</label>
+            <input type="text" name="cap" id="cap">
+        </p>
+        <p>
+            <label for="province">Province:</label>
+            <input type="text" name="province" id="province">
+        </p>
+        <p>
+            <label for="country">Country:</label>
+            <input type="text" name="country" id="country" value="Italy">
+        </p>
+        <p>
+            <label for="maxGuests">Max Number of Guests:</label>
+            <input type="number" name="maxGuests" id="maxGuests">
+        </p>
+        <p>
+            <label for="price">Price:</label>
+            <input type="number" name="price" id="price" step="0.01">
+        </p>
+        <select name="type" id="type">
+            <option value="">-- Select a type --</option>
+            <option value="HOME_RENTAL">Home Rental</option>
+            <option value="BNB">Bed & Breakfast</option>
+            <option value="HOTEL">Hotel</option>
+            <option value="HOSTEL">Hostel</option>
+        </select>
+        <p>
+            <input type="submit" value="CreateProperty">
+        </p>
+    </form>
+
+    <%- include('foot') -%>

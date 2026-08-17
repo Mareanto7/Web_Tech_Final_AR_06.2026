@@ -1,0 +1,18 @@
+<%- include('head', { title: 'Properties' }) -%>
+
+
+<h1>Available Properties</h1>
+
+<% properties.forEach(property => { %>
+    <p><%= property.propertyName %></p>
+    <div>
+        <p><%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
+        <p><%= property.province %>, <%= property.country %></p>
+    </div>
+    <div>
+        <p><%= property.maxGuests %></p>
+        <p><%= property.price %></p>
+    </div>
+<% }); %>
+
+<%- include('foot') -%>
