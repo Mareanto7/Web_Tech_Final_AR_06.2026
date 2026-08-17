@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+    GUEST
+    ADMIN
+    HOST
+}
+
+enum Channel {
+    GOOGLE
+    INSTAGRAM
+    FACEBOOK
+    TIKTOK
+    WORD_OF_MOUTH
+    BOOKING
+    AIRBNB
+    OTHER
+}
+
+enum Type {
+    HOME_RENTAL
+    BNB
+    HOTEL
+    HOSTEL
+}
+
+enum BookingStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+}
+
+model User {
+    id                  Int             @id @default(autoincrement())
+    email               String          @unique
+    passwordHash        String
+    name                String
+    surname             String
+    role                Role            @default(GUEST)
+    createdAt           DateTime        @default(now())
+
+    properties          Property[]      // back-reference: properties this user owns
+    bookings            Booking[]       // back-reference: bookings this user made
+}
+model Property {
+    id                  Int             @id @default(autoincrement())
+    propertyName        String
+    streetAddress       String
+    city                String
+    cap                 String
+    type                Type
+    province            String
+    country             String          @default("Italy")
+    maxGuests           Int
+    price               Decimal         @db.Decimal(10, 2)
+    isActive            Boolean         @default(false)
+    ownerId             Int
+
+    owner               User            @relation(fields: [ownerId], references: [id])
+    bookings            Booking[]
+}
+
+model Booking {
+    id                  Int             @id @default(autoincrement())
+    guestId             Int
+    createdAt           DateTime        @default(now())
+    guest               User            @relation(fields: [guestId], references: [id])
+    checkInDate         DateTime        @db.Date
+    checkOutDate        DateTime        @db.Date
+    bookingPrice        Decimal         @db.Decimal(10, 2)
+    channel             Channel
+    status              BookingStatus   @default(PENDING)
+    propertyId          Int
+    property            Property        @relation(fields: [propertyId], references: [id])
+}
