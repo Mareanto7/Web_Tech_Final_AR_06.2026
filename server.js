@@ -14,6 +14,7 @@ const prisma = new PrismaClient({ adapter });
  */
 
 const express = require('express');
+const session = require('express-session');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const bcrypt = require('bcrypt');
@@ -24,9 +25,41 @@ const saltRounds = 10;
 app.set('view engine', 'ejs');
 app.set('views', './src/views');
 app.use(express.urlencoded({ extended: false }));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+}));
 
 app.get('/register', (req, res) => {
   res.render('register', { error: null });
+});
+
+app.get('/login', (req, res) => {
+  res.render('login', {error: null});
+});
+
+app.post('/login', async (req, res) => {
+    // 1. Let's pull fields from the login form
+  const email = req.body.email;
+  const password = req.body.password;
+  // 2. Let's check both are present, otherwise return error
+  if (!email || !password){
+    return res.render('login', { error: 'All fields are required to continue'});
+  }
+  // 3. Let's find a user by email and store it in user
+  const user = await prisma.user.findUnique({where: {email: email}});
+  if (!user) {
+    return res.render('login', { error: 'Invalid credentials! Please insert correct credentials or register first'});
+  }
+  // 4. Let's compare the password and check it matches the one stored
+  if (! await bcrypt.compare(password, user.passwordHash)){
+    return res.render('login', { error: 'Invalid credentials! Please insert correct credentials or register first'});
+  }
+  // 5. Let's save session ID
+  req.session.userId= user.id
+  // 6. Return them to properties
+  return res.redirect('/properties');
 });
 
 app.post('/register', async (req, res) => {

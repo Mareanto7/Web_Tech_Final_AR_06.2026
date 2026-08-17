@@ -1,0 +1,22 @@
+<%- include('head', { title: 'Login Page' }) -%>
+
+    <h1>Log In</h1>
+    <% if (error) { %>
+        <p class="error"><%= error %></p>
+    <% } %>
+    <a href="/register">Register here</a>
+    <form method="post" action="/login">
+        <p>
+            <label for="email">E-mail:</label>
+            <input type="email" name="email" id="email">
+        </p>
+        <p>
+            <label for="password">Password:</label>
+            <input type="text" name="password" id="password">
+        </p>
+        <p>
+            <input type="submit" value="Login">
+        </p>
+    </form>
+
+    <%- include('foot') -%>
