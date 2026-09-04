@@ -126,4 +126,68 @@ app.post('/properties/new', requireAuth, async (req, res) => {
   return res.redirect('/properties');
 });
 
+app.get('/properties/:id/edit', requireAuth, async (req, res) => {
+  const id = parseInt(req.params.id);
+  // Fetch it to check the ownership
+  const property = await prisma.property.findUnique({ where: { id: id }})
+
+  // Ownership guard - must exists AND must belong to the logged-in user
+  if (!property || property.ownerId !== req.session.userId){
+    return res.redirect('/properties'); // silently refuse
+  }
+
+  res.render('editProperty', { property:property, error: null});
+});
+
+
+app.post('/properties/:id/edit', requireAuth, async (req, res) => {
+
+  // We get which property from the URL - but comes as text so we need to parse it
+  const id = parseInt(req.params.id);
+  // Fetch it to check the ownership
+  const property = await prisma.property.findUnique({ where: { id: id }})
+
+  // Ownership guard - must exists AND must belong to the logged-in user
+  if (!property || property.ownerId !== req.session.userId){
+    return res.redirect('/properties'); // silently refuse
+  }
+
+  const pname = req.body.propertyName;
+  const street = req.body.streetAddress;
+  const city = req.body.city;
+  const cap = req.body.cap;
+  const type = req.body.type;
+  const province = req.body.province;
+  const country = req.body.country;
+  const maxGuests = parseInt(req.body.maxGuests);
+  const price = parseFloat(req.body.price);
+
+  // Let's validate the data
+  if(!pname || !street || !city || !cap || !type || !province || !maxGuests || !price){
+    return res.render('editProperty', {error: 'All fields are required' });
+  }
+
+  await prisma.property.update({ where: { id: id }, data: {propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price }})
+  // Redirects to properties listing
+  return res.redirect('/properties');
+});
+
+app.post('/properties/:id/delete', requireAuth, async (req, res) => {
+  // We get which property from the URL - but comes as text so we need to parse it
+  const id = parseInt(req.params.id);
+  // Fetch it to check the ownership
+  const property = await prisma.property.findUnique({ where: { id: id }})
+
+  // Ownership guard - must exists AND must belong to the logged-in user
+  if (!property || property.ownerId !== req.session.userId){
+    return res.redirect('/properties'); // silently refuse
+  }
+  // Delete it
+  await prisma.property.delete({ where: { id: id }});
+
+  // Back to the list / home
+  return res.redirect('/properties');
+
+});
+
 app.listen(PORT, () => console.log(`Express started on port ${PORT}`));

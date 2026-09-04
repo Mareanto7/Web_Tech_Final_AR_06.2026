@@ -2,17 +2,31 @@
 
 
 <h1>Available Properties</h1>
-
+<a href="/properties/new">Add New Property</a>
 <% properties.forEach(property => { %>
-    <p><%= property.propertyName %></p>
     <div>
-        <p><%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
-        <p><%= property.province %>, <%= property.country %></p>
-    </div>
-    <div>
-        <p><%= property.maxGuests %></p>
-        <p><%= property.price %></p>
+        <p>Property Name: <%= property.propertyName %></p>
+        <div>
+            <p>Address: <%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
+            <p>Province and Country: <%= property.province %>, <%= property.country %></p>
+        </div>
+        <div>
+            <p>Max Guests: <%= property.maxGuests %></p>
+            <p>Base Price: €<%= property.price %></p>
+        </div>
+        <div>
+            <form method="post" action="/properties/<%= property.id %>/edit">
+                <button type="submit">Edit</button>
+            </form>
+            <br>
+            <br>
+            <form method="post" action="/properties/<%= property.id %>/delete">
+                <button type="submit">Delete</button>
+            </form>
+        </div>
     </div>
 <% }); %>
+
+
 
 <%- include('foot') -%>

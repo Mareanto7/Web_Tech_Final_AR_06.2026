@@ -1,0 +1,52 @@
+<%- include('head', { title: 'Edit Property Page' }) -%>
+
+    <h1>Edit Property Form</h1>
+    <% if (error) { %>
+        <p class="error"><%= error %></p>
+    <% } %>
+    <form method="post" action="/properties/<%= property.id %>/edit">
+        <p>
+            <label for="propertyName">Property Name:</label>
+            <input type="text" name="propertyName" id="propertyName" value="<%= property.propertyName %>">
+        </p>
+        <p>
+            <label for="streetAddress">Street Address:</label>
+            <input type="text" name="streetAddress" id="streetAddress" value="<%= property.streetAddress %>">
+        </p>
+        <p>
+            <label for="city">City:</label>
+            <input type="text" name="city" id="city" value="<%= property.city %>">
+        </p>
+        <p>
+            <label for="cap">CAP (Italy Only):</label>
+            <input type="text" name="cap" id="cap" value="<%= property.cap %>">
+        </p>
+        <p>
+            <label for="province">Province:</label>
+            <input type="text" name="province" id="province" value="<%= property.province %>">
+        </p>
+        <p>
+            <label for="country">Country:</label>
+            <input type="text" name="country" id="country" value="<%= property.country %>">
+        </p>
+        <p>
+            <label for="maxGuests">Max Number of Guests:</label>
+            <input type="number" name="maxGuests" id="maxGuests" value="<%= property.maxGuests %>">
+        </p>
+        <p>
+            <label for="price">Price:</label>
+            <input type="number" name="price" id="price" step="0.01" value="<%= property.price %>">
+        </p>
+        <select name="type" id="type">
+            <option value="">-- Select a type --</option>
+            <option value="HOME_RENTAL" <%= property.type === 'HOME_RENTAL' ? 'selected' : '' %>>Home Rental</option>
+            <option value="BNB" <%= property.type === 'BNB' ? 'selected' : '' %>>Bed & Breakfast</option>
+            <option value="HOTEL" <%= property.type === 'HOTEL' ? 'selected' : '' %>>Hotel</option>
+            <option value="HOSTEL" <%= property.type === 'HOSTEL' ? 'selected' : '' %>>Hostel</option>
+        </select>
+        <p>
+            <input type="submit" value="UpdateProperty">
+        </p>
+    </form>
+
+    <%- include('foot') -%>
