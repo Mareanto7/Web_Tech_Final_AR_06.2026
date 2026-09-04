@@ -164,7 +164,7 @@ app.post('/properties/:id/edit', requireAuth, async (req, res) => {
 
   // Let's validate the data
   if(!pname || !street || !city || !cap || !type || !province || !maxGuests || !price){
-    return res.render('editProperty', {error: 'All fields are required' });
+    return res.render('editProperty', { property: property, error: 'All fields are required' });
   }
 
   await prisma.property.update({ where: { id: id }, data: {propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price }})
