@@ -31,12 +31,23 @@ app.use(session({
   saveUninitialized: false,
 }));
 
+app.use((req, res, next) => {
+  res.locals.userId = req.session.userId;
+  next();
+});
+
 function requireAuth(req, res, next) {
   if (req.session.userId){
     next();
   } else {
     return res.redirect('/login');
   }
+}
+
+function getTodayMidnight() {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
 }
 
 app.get('/register', (req, res) => {
@@ -160,6 +171,32 @@ app.get('/bookings/mine', requireAuth, async (req, res) => {
 
   // Render the booking page list
   return res.render('myBookings', { bookings: bookings, error: null });
+});
+
+app.get('/properties/:id', requireAuth, async(req,res) => {
+
+  const id = parseInt(req.params.id);
+
+  const property = await prisma.property.findUnique({ where: { id: id }});
+
+  if (!property || (!property.isActive && property.ownerId !== req.session.userId)) {
+    return res.redirect('/properties');
+  }
+
+  const bookings = await prisma.booking.findMany({
+    where:
+        {
+          propertyId: id,
+          status: { not: 'CANCELLED' },
+          checkOutDate: { gte: getTodayMidnight() },
+        },
+    orderBy:
+        { checkInDate: 'asc'},
+  });
+
+
+  return res.render('propertyDetails', { property: property, bookings: bookings, error: null} );
+
 });
 
 app.get('/properties/:id/edit', requireAuth, async (req, res) => {
@@ -300,9 +337,7 @@ app.post('/properties/:id/book', requireAuth, async (req, res) => {
   }
 
   // Check the nights are valid
-  const todayMidnight = new Date();
-  todayMidnight.setUTCHours(0, 0, 0, 0);
-  if(checkOutDate <= checkInDate || checkInDate < todayMidnight){
+  if(checkOutDate <= checkInDate || checkInDate < getTodayMidnight()){
     return res.render('newBooking', { property: property, error: 'No check-in after check-out or past check-in are allowed, correct before proceeding!'});
   }
 
@@ -322,6 +357,29 @@ app.post('/properties/:id/book', requireAuth, async (req, res) => {
 
   // Compute booking price
   const bookingPrice = property.price.mul(nights);
+
+  // Conflict detection.
+  // A booking occupies the half-open interval [checkIn, checkOut): the arrival day is taken,
+  // The departure day is free, so same-day turnover is allowed.
+  // Overlap has four shapes (candidate starts before / inside / around / within
+  // an existing stay), but NON-overlap has only two: the candidate ends on or
+  // before the existing start, or begins on or after the existing end. So we
+  // characterise non-overlap and negate it (De Morgan):
+  //   no overlap  <=>  newOut <= oldIn  OR   newIn >= oldOut
+  //   overlap     <=>  newOut >  oldIn  AND  newIn <  oldOut
+  // Cancelled bookings are excluded: they must not block dates.
+  const conflictingBooking = await prisma.booking.findFirst({
+    where: {
+      propertyId: id,
+      status: { not: 'CANCELLED' },
+      checkInDate: { lt: checkOutDate },
+      checkOutDate: { gt: checkInDate }
+    }
+  });
+
+  if (conflictingBooking) {
+    return res.render('newBooking', { property: property, error: `Dates are conflicting with an existing booking at the same property with starting date: ${conflictingBooking.checkInDate.toLocaleDateString('it-IT')} and ending on: ${conflictingBooking.checkOutDate.toLocaleDateString('it-IT')}, please amend the dates!`});
+  }
 
   // Create the booking object
   await prisma.booking.create({ data: { guestId: guestId, propertyId: id, checkInDate: checkInDate, checkOutDate: checkOutDate, channel: channel, bookingPrice: bookingPrice, numberGuests: numberGuests }});

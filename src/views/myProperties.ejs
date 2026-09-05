@@ -1,0 +1,43 @@
+<%- include('head', { title: 'My Properties' }) -%>
+
+
+<h1>My Properties</h1>
+<a href="/properties/new">Add New Property</a>
+<% if (properties.length === 0) { %>
+    <p>You haven't listed any properties yet!</p>
+<%} else {%>
+    <% properties.forEach(property => { %>
+        <div>
+            <p>Property Name: <%= property.propertyName %></p>
+            <p>Status: <%= property.isActive ? 'Published' : 'Draft' %></p>
+            <div>
+                <p>Address: <%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
+                <p>Province and Country: <%= property.province %>, <%= property.country %></p>
+            </div>
+            <div>
+                <p>Max Guests: <%= property.maxGuests %></p>
+                <p>Base Price: €<%= property.price %></p>
+            </div>
+            <div>
+                <a href="/properties/<%= property.id %>/edit">Edit</a>
+
+                <% if (property.isActive) { %>
+                    <form method="post" action="/properties/<%= property.id %>/unpublish">
+                        <button type="submit">Unpublish</button>
+                    </form>
+                <% } else { %>
+                    <form method="post" action="/properties/<%= property.id %>/publish">
+                        <button type="submit">Publish</button>
+                    </form>
+                <% } %>
+                <form method="post" action="/properties/<%= property.id %>/delete">
+                    <button type="submit">Delete</button>
+                </form>
+            </div>
+        </div>
+    <% }); %>
+<% } %>
+
+
+
+<%- include('foot') -%>

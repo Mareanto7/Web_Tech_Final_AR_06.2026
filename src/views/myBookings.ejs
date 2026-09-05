@@ -1,0 +1,30 @@
+<%- include('head', { title: 'My Bookings' }) -%>
+
+
+<h1>My Bookings</h1>
+<a href="/properties">Make a new Booking</a>
+<% if (bookings.length === 0) { %>
+    <p>You haven't made any bookings yet!</p>
+<% } else { %>
+    <% bookings.forEach(booking => { %>
+        <div>
+            <p>Property: <%= booking.property.propertyName %></p>
+            <p>Check-In Date: <%= booking.checkInDate.toLocaleDateString('it-IT') %></p>
+            <p>Check-Out Date: <%= booking.checkOutDate.toLocaleDateString('it-IT') %></p>
+            <p>Status: <%= booking.status %></p>
+            <div>
+                <p>Guests: <%= booking.numberGuests %></p>
+                <p>Price: €<%= booking.bookingPrice %></p>
+            </div>
+            <div>
+                <% if (booking.status !== 'CANCELLED') { %>
+                <form method="post" action="/bookings/<%= booking.id %>/cancel">
+                    <button type="submit">Cancel this booking</button>
+                </form>
+                <% } %>
+            </div>
+        </div>
+    <% }); %>
+<% } %>
+
+<%- include('foot') -%>

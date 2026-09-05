@@ -11,11 +11,11 @@
     <form method="post" action="/properties/<%= property.id %>/book">
         <p>
             <label for="checkInDate">Check-in Date</label>
-            <input type="date" name="checkInDate" min="<%= new Date().toISOString().split('T')[0] %>" id="checkInDate" required>
+            <input type="date" name="checkInDate" min="<%= new Date().toLocaleDateString('it-IT').split('T')[0] %>" id="checkInDate" required>
         </p>
         <p>
             <label for="checkOutDate">Check-out Date</label>
-            <input type="date" name="checkOutDate" min="<%= new Date().toISOString().split('T')[0] %>" id="checkOutDate" required>
+            <input type="date" name="checkOutDate" min="<%= new Date().toLocaleDateString('it-IT').split('T')[0] %>" id="checkOutDate" required>
         </p>
         <p>
             <label for="numberGuests">Number of Guests: </label>
