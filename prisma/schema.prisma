@@ -79,6 +79,7 @@ model Booking {
     checkInDate         DateTime        @db.Date
     checkOutDate        DateTime        @db.Date
     bookingPrice        Decimal         @db.Decimal(10, 2)
+    numberGuests        Int
     channel             Channel
     status              BookingStatus   @default(PENDING)
     propertyId          Int
