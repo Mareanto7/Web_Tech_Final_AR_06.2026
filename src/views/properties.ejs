@@ -2,9 +2,41 @@
 
 
 <h1>Available Properties</h1>
+<form method="get">
+    <label for="checkIn">Check-In</label>
+    <input type="date" name="checkIn" id="checkIn" value="<%= checkIn || '' %>" min="<%= new Date().toISOString().split('T')[0] %>">
+
+    <label for="checkOut">Check-Out</label>
+    <input type="date" name="checkOut" id="checkOut" value="<%= checkOut || '' %>" min="<%= new Date().toISOString().split('T')[0] %>">
+
+    <label for="minGuests">Guests</label>
+    <input type="number" name="minGuests" id="minGuests" min="1" value="<%= minGuests || '' %>">
+
+    <label for="maxPrice">Max Price Per Night</label>
+    <input type="number" name="maxPrice" id="maxPrice" min="0" step="0.01" value="<%= maxPrice || '' %>">
+
+    <label for="type">Type</label>
+    <select name="type" id="type">
+        <option value="">Any type</option>
+        <option value="HOME_RENTAL" <%= type === 'HOME_RENTAL' ? 'selected' : '' %>>Home Rental </option>
+        <option value="BNB" <%= type === 'BNB' ? 'selected' : '' %>>Bed & Breakfast</option>
+        <option value="HOTEL" <%= type === 'HOTEL' ? 'selected' : '' %>>Hotel</option>
+        <option value="HOSTEL" <%= type === 'HOSTEL' ? 'selected' : '' %>>Hostel</option>
+    </select>
+
+    <button type="submit">Search Availability</button>
+    <a href="/properties">Clear</a>
+</form>
 <% if (properties.length === 0) { %>
-    <p>There aren't any listed properties yet!</p>
-<%} else {%>
+    <% if (checkIn && checkOut) { %>
+        <p>No properties are available for those dates.</p>
+    <% } else { %>
+        <p>There aren't any listed properties yet!</p>
+    <% } %>
+<% } else { %>
+    <% if (checkIn && checkOut) { %>
+        <p>Showing properties available from <%= checkIn %> to <%= checkOut %>.</p>
+    <% } %>
     <% properties.forEach(property => { %>
         <div>
             <p>Property Name: <%= property.propertyName %></p>

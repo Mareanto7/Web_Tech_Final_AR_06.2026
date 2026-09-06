@@ -1,0 +1,31 @@
+<%- include('head', { title: 'Received Bookings' }) -%>
+
+
+<h1>Received Bookings</h1>
+<% if (bookings.length === 0) { %>
+    <p>You haven't received any bookings yet!</p>
+<% } else { %>
+    <% bookings.forEach(booking => { %>
+        <div>
+            <p>Property: <%= booking.property.propertyName %></p>
+            <p>Check-In Date: <%= booking.checkInDate.toLocaleDateString('it-IT') %></p>
+            <p>Check-Out Date: <%= booking.checkOutDate.toLocaleDateString('it-IT') %></p>
+            <p>Status: <%= booking.status %></p>
+            <div>
+                <p>Guest: <%= booking.guest.name %> <%= booking.guest.surname %></p>
+                <p>Guests: <%= booking.numberGuests %></p>
+                <p>Price: €<%= booking.bookingPrice %></p>
+            </div>
+        </div>
+    <% }); %>
+    <% if (booking.status === 'PENDING') { %>
+        <form method="post" action="/bookings/<%= booking.id %>/confirm" style="display:inline">
+            <button type="submit">Confirm</button>
+        </form>
+        <form method="post" action="/bookings/<%= booking.id %>/reject" style="display:inline">
+            <button type="submit">Reject</button>
+        </form>
+    <% } %>
+<% } %>
+
+<%- include('foot') -%>

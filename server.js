@@ -3,7 +3,7 @@
 // The adapter holds the Postgres connection, the client uses the adapter to run typed queries, and the URL comes from the environment so no secret is hardocded
 require('dotenv').config();
 const { PrismaPg } = require('@prisma/adapter-pg');
-const { PrismaClient, Channel } = require('@prisma/client');
+const { PrismaClient, Channel, Type } = require('@prisma/client');
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -128,8 +128,46 @@ app.post('/register', async (req, res) => {
 });
 
 app.get('/properties', requireAuth, async (req, res) => {
-  const properties = await prisma.property.findMany({ where: { isActive : true} });
-  res.render('properties', {properties: properties});
+  const where = { isActive: true };
+
+  if( req.query.type && Object.values(Type).includes(req.query.type)) {
+    where.type = req.query.type;
+  }
+
+  const minGuests = parseInt(req.query.minGuests);
+  if (!isNaN(minGuests) && minGuests > 0) {
+    where.maxGuests = { gte: minGuests };
+  }
+
+  const maxPrice = parseFloat(req.query.maxPrice);
+  if(!isNaN(maxPrice) && maxPrice > 0 ) {
+    where.price = { lte: maxPrice };
+  }
+
+
+  if ( req.query.checkIn && req.query.checkOut ) {
+    const checkIn = new Date(req.query.checkIn);
+    const checkOut = new Date(req.query.checkOut);
+
+    where.bookings = {
+      none: {
+        status: { not: 'CANCELLED' },
+        checkInDate: { lt: checkOut },
+        checkOutDate: { gt: checkIn },
+      }
+    };
+  }
+
+  const properties = await prisma.property.findMany({ where: where });
+
+  res.render('properties', { properties: properties,
+    checkIn: req.query.checkIn,
+    checkOut: req.query.checkOut,
+    type: req.query.type,
+    minGuests: req.query.minGuests,
+    maxPrice: req.query.maxPrice,
+    error: null
+  });
 });
 
 app.get('/properties/new', requireAuth, (req, res) => {
@@ -151,6 +189,14 @@ app.post('/properties/new', requireAuth, async (req, res) => {
   if(!pname || !street || !city || !cap || !type || !province || !maxGuests || !price){
     return res.render('newProperty', {error: 'All fields are required' });
   }
+
+  // Check on price and max guests
+  if (isNaN(maxGuests) || maxGuests < 1) {
+    return res.render('newProperty', { error: 'Max guests must be at least 1' });
+  }
+  if (isNaN(price) || price <= 0) {
+        return res.render('newProperty', { error: 'Price must be greater than zero' });
+  }
   // 3. Create the property object
   await prisma.property.create({ data: {ownerId: req.session.userId, propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price}});
   // 4. Redirects to properties listing
@@ -164,6 +210,16 @@ app.get('/properties/mine', requireAuth, async (req, res) => {
   // Return the myProperties page
   return res.render('myProperties', { properties: properties, error: null });
 
+});
+
+app.get('/bookings/received', requireAuth, async(req, res) => {
+  const bookings = await prisma.booking.findMany({
+    where: { property: { ownerId: req.session.userId }},
+    include: { property: true, guest: true },
+    orderBy: { checkInDate: 'asc' }
+  });
+
+  res.render('receivedBookings', { bookings: bookings, error: null });
 });
 
 app.get('/bookings/mine', requireAuth, async (req, res) => {
@@ -225,6 +281,7 @@ app.post('/properties/:id/edit', requireAuth, async (req, res) => {
     return res.redirect('/properties'); // silently refuse
   }
 
+  // Populate variables from fields input
   const pname = req.body.propertyName;
   const street = req.body.streetAddress;
   const city = req.body.city;
@@ -238,6 +295,14 @@ app.post('/properties/:id/edit', requireAuth, async (req, res) => {
   // Let's validate the data
   if(!pname || !street || !city || !cap || !type || !province || !maxGuests || !price){
     return res.render('editProperty', { property: property, error: 'All fields are required' });
+  }
+
+  // Check on price and max guests
+  if (isNaN(maxGuests) || maxGuests < 1) {
+    return res.render('editProperty', { property: property, error: 'Max guests must be at least 1' });
+  }
+  if (isNaN(price) || price <= 0) {
+        return res.render('editProperty', { property: property, error: 'Price must be greater than zero' });
   }
 
   await prisma.property.update({ where: { id: id }, data: {propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price }})
@@ -397,11 +462,65 @@ app.post('/bookings/:id/cancel', requireAuth, async (req, res) => {
     return res.redirect('/bookings/mine');
   }
 
+  if ( booking.checkInDate < getTodayMidnight()) {
+    return res.redirect('/bookings/mine');
+  }
+
   // Cancel it and save
   await prisma.booking.update({ where: { id: id }, data: { status: 'CANCELLED' }});
 
   // Redirect to the list of my bookings
   return res.redirect('/bookings/mine');
+});
+
+app.post('/bookings/:id/confirm', requireAuth, async (req, res) => {
+  const id = parseInt(req.params.id);
+  // Fetch it to check the ownership
+  const booking = await prisma.booking.findUnique({
+    where: { id: id },
+    include: { property: true }
+  })
+
+  // Ownership guard - must exists AND must belong to the logged-in user
+  if ( !booking || booking.property.ownerId !== req.session.userId ){
+    return res.redirect('/bookings/received');
+  }
+
+  // Check the status is PENDING
+  if (booking.status !== 'PENDING') {
+    return res.redirect('/bookings/received');
+  }
+
+  // Cancel it and save
+  await prisma.booking.update({ where: { id: id }, data: { status: 'CONFIRMED' }});
+
+  // Redirect to the list of my bookings
+  return res.redirect('/bookings/received');
+});
+
+app.post('/bookings/:id/reject', requireAuth, async (req, res) => {
+  const id = parseInt(req.params.id);
+  // Fetch it to check the ownership
+  const booking = await prisma.booking.findUnique({
+    where: { id: id },
+    include: { property: true }
+  })
+
+  // Ownership guard - must exists AND must belong to the logged-in user
+  if ( !booking || booking.property.ownerId !== req.session.userId ){
+    return res.redirect('/bookings/received');
+  }
+
+  // Check the status is PENDING
+  if (booking.status !== 'PENDING') {
+    return res.redirect('/bookings/received');
+  }
+
+  // Cancel it and save
+  await prisma.booking.update({ where: { id: id }, data: { status: 'CANCELLED' }});
+
+  // Redirect to the list of my bookings
+  return res.redirect('/bookings/received');
 });
 
 app.listen(PORT, () => console.log(`Express started on port ${PORT}`));
