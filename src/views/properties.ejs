@@ -2,6 +2,7 @@
 
 
 <h1>Available Properties</h1>
+<%# filters input fields %>
 <form method="get">
     <div class="card filters">
         <div>
@@ -43,6 +44,8 @@
         </div>
     </div>
 </form>
+
+<%# checks and properties details %>
 <% if (properties.length === 0) { %>
     <% if (checkIn && checkOut) { %>
         <p>No properties are available for those dates.</p>

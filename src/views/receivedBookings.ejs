@@ -6,6 +6,7 @@
     <p>You haven't received any bookings yet!</p>
 <% } else { %>
     <% bookings.forEach(booking => { %>
+        <%# details of the bookings fields - view only %>
         <div class="card">
             <h3>Property: <%= booking.property.propertyName %></h3>
             <p>Check-In Date: <%= booking.checkInDate.toLocaleDateString('it-IT') %></p>
@@ -14,6 +15,7 @@
             <p>Guest: <%= booking.guest.name %> <%= booking.guest.surname %></p>
             <p>Guests: <%= booking.numberGuests %></p>
             <p>Price: €<%= booking.bookingPrice %></p>
+            <%# confirm or reject - host only %>
             <% if (booking.status === 'PENDING') { %>
                 <form method="post" action="/bookings/<%= booking.id %>/confirm" style="display:inline">
                     <button type="submit">Confirm</button>

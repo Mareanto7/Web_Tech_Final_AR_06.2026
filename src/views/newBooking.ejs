@@ -11,6 +11,7 @@
     <p>City: <%= property.city %></p>
     <p>Max guests: <%= property.maxGuests %></p>
 
+    <%# new booking input fields %>
     <form method="post" action="/properties/<%= property.id %>/book">
         <div class="card">
             <p>
@@ -28,6 +29,7 @@
                 <input type="number" name="numberGuests" min="1" max="<%= property.maxGuests %>" id="numberGuests" required>
             </p>
 
+            <%# fetch and recalculate price per night and estimated total %>
             <p>Price per night: €<%= property.price %></p>
             <p>Estimated Total: €<span id="total">-</span></p>
 
@@ -51,6 +53,7 @@
         </div>
     </form>
 
+    <%# recalculate price live %>
     <script>
         const PRICE = <%= property.price %>;
         const MS_PER_DAY = 1000 * 60 * 60* 24;

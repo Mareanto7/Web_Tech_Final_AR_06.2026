@@ -9,10 +9,7 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 
-/**
- * Module dependencies
- */
-
+// Module dependencies
 const express = require('express');
 const session = require('express-session');
 const app = express();
@@ -21,6 +18,7 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const multer = require('multer');
 const path = require('path');
+const MAX_NIGHTS = 30;
 
 // Where uploaded files land and what they get called
 const storage = multer.diskStorage({
@@ -66,9 +64,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// static folder initialized
 app.use(express.static('public'));
 
+// require auth function
 function requireAuth(req, res, next) {
+  // check if the user Id matches
   if (req.session.userId){
     next();
   } else {
@@ -76,20 +77,24 @@ function requireAuth(req, res, next) {
   }
 }
 
+// get midnight function
 function getTodayMidnight() {
   const d = new Date();
   d.setUTCHours(0, 0, 0, 0);
   return d;
 }
 
+// register get
 app.get('/register', (req, res) => {
   res.render('register', { error: null });
 });
 
+// login get
 app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
+// logout post
 app.post('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -103,16 +108,19 @@ app.post('/logout', (req, res) => {
   });
 });
 
+// route / home redirect
 app.get('/', (req, res) => {
+  // we check if it's auth
   if( req.session.userId ){
     return res.redirect('/properties');
   }
+  // redirect to login
   res.redirect('/login');
 });
 
 app.post('/login', async (req, res) => {
     // 1. Let's pull fields from the login form
-  const email = req.body.email;
+  const email = req.body.email.trim().toLowerCase();
   const password = req.body.password;
   // 2. Let's check both are present, otherwise return error
   if (!email || !password){
@@ -135,7 +143,7 @@ app.post('/login', async (req, res) => {
 
 app.post('/register', async (req, res) => {
   // 1. Let's pull fields from the registration form
-  const email = req.body.email;
+  const email = req.body.email.trim().toLowerCase();
   const password = req.body.password;
   const name = req.body.name;
   const surname = req.body.surname;
@@ -143,6 +151,7 @@ app.post('/register', async (req, res) => {
   if (!email || !password || !name || !surname){
     return res.render('register', { error: 'All fields are required to continue'});
   }
+  // check password length
   if (password.length < 8){
     return res.render('register', {error: 'Password too short'});
   }
@@ -160,27 +169,33 @@ app.post('/register', async (req, res) => {
 });
 
 app.get('/properties', requireAuth, async (req, res) => {
+  // check active properties
   const where = { isActive: true };
 
+  // filters check the type
   if( req.query.type && Object.values(Type).includes(req.query.type)) {
     where.type = req.query.type;
   }
 
+  // filters check minGuests
   const minGuests = parseInt(req.query.minGuests);
   if (!isNaN(minGuests) && minGuests > 0) {
     where.maxGuests = { gte: minGuests };
   }
 
+  // filters on max price
   const maxPrice = parseFloat(req.query.maxPrice);
   if(!isNaN(maxPrice) && maxPrice > 0 ) {
     where.price = { lte: maxPrice };
   }
 
-
+  // filters on checkIn & checkOut
   if ( req.query.checkIn && req.query.checkOut ) {
+    // initialize the constants
     const checkIn = new Date(req.query.checkIn);
     const checkOut = new Date(req.query.checkOut);
 
+    // fetch all the bookings
     where.bookings = {
       none: {
         status: { not: 'CANCELLED' },
@@ -190,8 +205,10 @@ app.get('/properties', requireAuth, async (req, res) => {
     };
   }
 
+  // find all properties
   const properties = await prisma.property.findMany({ where: where });
 
+  // render with params
   res.render('properties', { properties: properties,
     checkIn: req.query.checkIn,
     checkOut: req.query.checkOut,
@@ -203,11 +220,12 @@ app.get('/properties', requireAuth, async (req, res) => {
 });
 
 app.get('/properties/new', requireAuth, (req, res) => {
+  // render the new property form
   res.render('newProperty', {error: null});
 });
 
 app.post('/properties/new', requireAuth, upload.single('photo'), async (req, res) => {
-  // 1. Let's pull data from the form
+  // Let's pull data from the form
   const pname = req.body.propertyName;
   const street = req.body.streetAddress;
   const city = req.body.city;
@@ -217,7 +235,7 @@ app.post('/properties/new', requireAuth, upload.single('photo'), async (req, res
   const country = req.body.country;
   const maxGuests = parseInt(req.body.maxGuests);
   const price = parseFloat(req.body.price);
-  // 2. Let's validate the data
+  // Let's validate the data
   if(!pname || !street || !city || !cap || !type || !province || !maxGuests || !price){
     return res.render('newProperty', {error: 'All fields are required' });
   }
@@ -229,9 +247,9 @@ app.post('/properties/new', requireAuth, upload.single('photo'), async (req, res
   if (isNaN(price) || price <= 0) {
         return res.render('newProperty', { error: 'Price must be greater than zero' });
   }
-  // 3. Create the property object
+  // Create the property object
   await prisma.property.create({ data: {ownerId: req.session.userId, propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price, photoPath: req.file ? req.file.filename : null }});
-  // 4. Redirects to properties listing
+  // Redirects to properties listing
   return res.redirect('/properties');
 });
 
@@ -245,16 +263,19 @@ app.get('/properties/mine', requireAuth, async (req, res) => {
 });
 
 app.get('/bookings/received', requireAuth, async(req, res) => {
+  // find all relevant bookings
   const bookings = await prisma.booking.findMany({
     where: { property: { ownerId: req.session.userId }},
     include: { property: true, guest: true },
     orderBy: { checkInDate: 'asc' }
   });
 
+  // Return received Bookings
   res.render('receivedBookings', { bookings: bookings, error: null });
 });
 
 app.get('/bookings/mine', requireAuth, async (req, res) => {
+  // find all relevant bookings
   const bookings = await prisma.booking.findMany({ where: { guestId: req.session.userId }, include: { property: true }});
 
   // Render the booking page list
@@ -262,16 +283,18 @@ app.get('/bookings/mine', requireAuth, async (req, res) => {
 });
 
 app.get('/properties/:id', requireAuth, async(req,res) => {
-
+  // Fetch the id
   const id = parseInt(req.params.id);
 
+  // Find the specific property
   const property = await prisma.property.findUnique({ where: { id: id }});
 
+  // Checks on property
   if (!property || (!property.isActive && property.ownerId !== req.session.userId)) {
     return res.redirect('/properties');
   }
 
-
+  // Find all relevant bookings
   const bookings = await prisma.booking.findMany({
     where:
         {
@@ -283,7 +306,7 @@ app.get('/properties/:id', requireAuth, async(req,res) => {
         { checkInDate: 'asc'},
   });
 
-    // Expand each booking's [checkIn, checkOut) range into individual day strings
+  // Expand each booking's [checkIn, checkOut) range into individual day strings
   // so the calendar can mark them. Checkout day is NOT occupied (half-open interval).
   const MS_PER_DAY = 1000 * 60 * 60 * 24;
   const occupied = [];
@@ -293,6 +316,7 @@ app.get('/properties/:id', requireAuth, async(req,res) => {
     }
   });
 
+  // Redirect with attributes
   return res.render('propertyDetails', { property: property, bookings: bookings, occupied: occupied, error: null} );
 
 });
@@ -307,6 +331,7 @@ app.get('/properties/:id/edit', requireAuth, async (req, res) => {
     return res.redirect('/properties'); // silently refuse
   }
 
+  // Redirect to edit property with attributes
   res.render('editProperty', { property: property, error: null});
 });
 
@@ -452,6 +477,12 @@ app.post('/properties/:id/book', requireAuth, async (req, res) => {
   const MS_PER_DAY = 1000 * 60 * 60 * 24;
   const nights = (checkOutDate - checkInDate) / MS_PER_DAY;
 
+  // Maximum booking duration
+  if (nights > MAX_NIGHTS) {
+    return res.render('newBooking', { property: property,
+      error: `Bookings cannot exceed ${MAX_NIGHTS} nights.` });
+  }
+
   // Check the nights are valid
   if(numberGuests > property.maxGuests || numberGuests < 1 || isNaN(numberGuests)){
     return res.render('newBooking', { property: property, error: `Include a number of guests between 1 and ${property.maxGuests} before proceeding!`})
@@ -484,6 +515,7 @@ app.post('/properties/:id/book', requireAuth, async (req, res) => {
     }
   });
 
+  // Check of conflicting bookings
   if (conflictingBooking) {
     return res.render('newBooking', { property: property, error: `Dates are conflicting with an existing booking at the same property with starting date: ${conflictingBooking.checkInDate.toLocaleDateString('it-IT')} and ending on: ${conflictingBooking.checkOutDate.toLocaleDateString('it-IT')}, please amend the dates!`});
   }
@@ -504,6 +536,7 @@ app.post('/bookings/:id/cancel', requireAuth, async (req, res) => {
     return res.redirect('/bookings/mine');
   }
 
+  // Check for future only bookings
   if ( booking.checkInDate < getTodayMidnight()) {
     return res.redirect('/bookings/mine');
   }
@@ -516,6 +549,7 @@ app.post('/bookings/:id/cancel', requireAuth, async (req, res) => {
 });
 
 app.post('/bookings/:id/confirm', requireAuth, async (req, res) => {
+  // Fetch the Id
   const id = parseInt(req.params.id);
   // Fetch it to check the ownership
   const booking = await prisma.booking.findUnique({
@@ -541,8 +575,9 @@ app.post('/bookings/:id/confirm', requireAuth, async (req, res) => {
 });
 
 app.post('/bookings/:id/reject', requireAuth, async (req, res) => {
+  // Fetch the Id
   const id = parseInt(req.params.id);
-  // Fetch it to check the ownership
+  // Fetch it to check the ownership and fetch specific
   const booking = await prisma.booking.findUnique({
     where: { id: id },
     include: { property: true }

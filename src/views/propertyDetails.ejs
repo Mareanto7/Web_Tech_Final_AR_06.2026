@@ -5,13 +5,14 @@
 <% if (property.photoPath) { %>
     <img src="/uploads/<%= property.photoPath %>" alt="<%= property.propertyName %>" class="hero">
 <% } %>
-
+<%# show property details - view only %>
 <div class="card">
     <p>Address: <%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
     <p>Province and Country: <%= property.province %>, <%= property.country %></p>
     <p>Maximum Number of Guests: <%= property.maxGuests %></p>
     <p>Price per night: €<%= property.price %></p>
 
+    <%# book or edit - action for different user %>
     <% if (property.ownerId !== userId) { %>
         <a href="/properties/<%= property.id %>/book" class="btn">Book this property</a>
     <% } else { %>
@@ -19,6 +20,7 @@
     <% } %>
 </div>
 
+<%# property availability fields - view only %>
 <h2>Availability this month</h2>
 <div class="card">
     <div class="calendar">

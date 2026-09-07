@@ -5,7 +5,7 @@
         <p class="error"><%= error %></p>
     <% } %>
     <form method="post" action="/properties/<%= property.id %>/edit" enctype="multipart/form-data">
-
+        <%# edit property input fields - update %>
         <div class="card">
             <p>
                 <label for="propertyName">Property Name:</label>
@@ -57,7 +57,7 @@
 
             <p>
                 <label for="photo">Photo (JPEG, PNG or WebP, max 10MB):</label>
-
+                <%# photo check - if present %>
                 <% if (property.photoPath) { %>
                     <img src="/uploads/<%= property.photoPath %>" alt="<%= property.propertyName %>" class="thumb">
                     <span class="muted">Choose a new file to replace it.</span>
