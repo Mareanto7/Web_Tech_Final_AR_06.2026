@@ -600,4 +600,21 @@ app.post('/bookings/:id/reject', requireAuth, async (req, res) => {
   return res.redirect('/bookings/received');
 });
 
+// 404 — no route matched
+app.use((req, res) => {
+  res.status(404).render('error', {
+    title: 'Page not found',
+    message: 'The page you are looking for does not exist.'
+  });
+});
+
+// 500 — any error thrown in a route reaches here
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).render('error', {
+    title: 'Something went wrong',
+    message: 'An unexpected error occurred. Please try again.'
+  });
+});
+
 app.listen(PORT, () => console.log(`Express started on port ${PORT}`));
