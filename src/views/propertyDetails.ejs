@@ -1,38 +1,53 @@
 <%- include('head', { title: 'Property Details' }) -%>
 
+<h1><%= property.propertyName %></h1>
 
-<h1>Property Details <%= property.propertyName %></h1>
-<p>Property Name: <%= property.propertyName %></p>
+<% if (property.photoPath) { %>
+    <img src="/uploads/<%= property.photoPath %>" alt="<%= property.propertyName %>" class="hero">
+<% } %>
+
 <div class="card">
     <p>Address: <%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
     <p>Province and Country: <%= property.province %>, <%= property.country %></p>
-</div>
-<div class="card">
     <p>Maximum Number of Guests: <%= property.maxGuests %></p>
     <p>Price per night: €<%= property.price %></p>
-</div>
-<br>
-<br>
-<h2>Availability</h2>
-<% if (bookings.length === 0) { %>
-    <p>You haven't received any bookings yet for the selected property - Fully Available!</p>
-<%} else {%>
-    <h3>Occupied Nights:</h3>
-    <div class="card">
-        <ul>
-            <% bookings.forEach(property => { %>
-                <li>Check-In Date: <%= booking.checkInDate.toLocaleDateString('it-IT') %> → Check-Out Date: <%= booking.checkOutDate.toLocaleDateString('it-IT') %></li>
-            <% }); %>
-        </ul>
-    </div>
- <div class="card">
+
     <% if (property.ownerId !== userId) { %>
-        <a href="/properties/<%= property.id %>/book">Book this property</a>
-    <% else { %>
-        <a href="/properties/<%= property.id %>/edit">Edit your property</a>
+        <a href="/properties/<%= property.id %>/book" class="btn">Book this property</a>
+    <% } else { %>
+        <a href="/properties/<%= property.id %>/edit" class="btn">Edit your property</a>
     <% } %>
 </div>
-<% } %>
 
+<h2>Availability this month</h2>
+<div class="card">
+    <div class="calendar">
+        <% const today = new Date();
+           const year = today.getUTCFullYear();
+           const month = today.getUTCMonth();
+           const firstDay = new Date(Date.UTC(year, month, 1));
+           const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+           // JS weeks start Sunday; shift so Monday is column 1
+           const offset = (firstDay.getUTCDay() + 6) % 7;
+        %>
 
-<%- include('foot') -%>
+        <div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div>
+        <div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div><div class="dow">Sun</div>
+
+        <% for (let i = 0; i < offset; i++) { %>
+            <div></div>
+        <% } %>
+
+        <% for (let day = 1; day <= daysInMonth; day++) {
+             const iso = new Date(Date.UTC(year, month, day)).toISOString().split('T')[0];
+             const isBooked = occupied.includes(iso);
+        %>
+            <div class="day <%= isBooked ? 'booked' : 'free' %>"><%= day %></div>
+        <% } %>
+    </div>
+
+    <p class="muted" style="text-align: center;">
+        <span class="legend booked"></span> Booked &nbsp;
+        <span class="legend free"></span> Available
+    </p>
+</div>

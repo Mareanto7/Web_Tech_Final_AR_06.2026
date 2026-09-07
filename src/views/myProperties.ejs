@@ -2,24 +2,26 @@
 
 
 <h1>My Properties</h1>
-<a href="/properties/new">Add New Property</a>
+<a href="/properties/new" class="btn">Add New Property</a>
 <% if (properties.length === 0) { %>
     <p>You haven't listed any properties yet!</p>
 <%} else {%>
     <% properties.forEach(property => { %>
         <div class="card">
-            <p>Property Name: <%= property.propertyName %></p>
-            <p>Status: <%= property.isActive ? 'Published' : 'Draft' %></p>
-            <div class="card">
-                <p>Address: <%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
-                <p>Province and Country: <%= property.province %>, <%= property.country %></p>
-            </div>
-            <div class="card">
-                <p>Max Guests: <%= property.maxGuests %></p>
-                <p>Base Price: €<%= property.price %></p>
-            </div>
-            <div class="card">
-                <a href="/properties/<%= property.id %>/edit">Edit</a>
+            <h3>Property Name: <%= property.propertyName %></h3>
+            <% if (property.photoPath) { %>
+                <img src="/uploads/<%= property.photoPath %>" alt="<%= property.propertyName %>" class="hero">
+            <% } %>
+            <p>Status: <span class="status"><%= property.isActive ? 'Published' : 'Draft' %></span></p>
+            <p>Address: <%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
+            <p>Province and Country: <%= property.province %>, <%= property.country %></p>
+
+            <p>Max Guests: <%= property.maxGuests %></p>
+            <p>Base Price: €<%= property.price %></p>
+
+            <div class="actions">
+
+                <a href="/properties/<%= property.id %>/edit" class="btn">Edit</a>
 
                 <% if (property.isActive) { %>
                     <form method="post" action="/properties/<%= property.id %>/unpublish">
@@ -31,7 +33,7 @@
                     </form>
                 <% } %>
                 <form method="post" action="/properties/<%= property.id %>/delete">
-                    <button type="submit">Delete</button>
+                    <button type="submit" class="danger">Delete</button>
                 </form>
             </div>
         </div>

@@ -64,6 +64,7 @@ model Property {
     country             String          @default("Italy")
     maxGuests           Int
     price               Decimal         @db.Decimal(10, 2)
+    photoPath           String?
     isActive            Boolean         @default(false)
     ownerId             Int
 

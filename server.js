@@ -19,7 +19,37 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const multer = require('multer');
+const path = require('path');
 
+// Where uploaded files land and what they get called
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/uploads');
+  },
+  filename: function (req, file, cb) {
+    // Never reuse the client-supplied name: it could contain path traversal
+    // (e.g. "../../server.js"). We generate our own and keep only the extension.
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, unique + path.extname(file.originalname).toLowerCase());
+  }
+});
+
+// Only bitmap image formats. SVG is deliberately excluded: it is XML and can
+// carry <script>, which would then execute from our own origin (stored XSS).
+const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 },   // 10 MB
+  fileFilter: function (req, file, cb) {
+    if (ALLOWED_MIME.includes(file.mimetype)) {
+      cb(null, true);            // accept
+    } else {
+      cb(null, false);           // reject silently; req.file will be undefined
+    }
+  }
+});
 
 // config
 app.set('view engine', 'ejs');
@@ -176,7 +206,7 @@ app.get('/properties/new', requireAuth, (req, res) => {
   res.render('newProperty', {error: null});
 });
 
-app.post('/properties/new', requireAuth, async (req, res) => {
+app.post('/properties/new', requireAuth, upload.single('photo'), async (req, res) => {
   // 1. Let's pull data from the form
   const pname = req.body.propertyName;
   const street = req.body.streetAddress;
@@ -200,7 +230,7 @@ app.post('/properties/new', requireAuth, async (req, res) => {
         return res.render('newProperty', { error: 'Price must be greater than zero' });
   }
   // 3. Create the property object
-  await prisma.property.create({ data: {ownerId: req.session.userId, propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price}});
+  await prisma.property.create({ data: {ownerId: req.session.userId, propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price, photoPath: req.file ? req.file.filename : null }});
   // 4. Redirects to properties listing
   return res.redirect('/properties');
 });
@@ -241,6 +271,7 @@ app.get('/properties/:id', requireAuth, async(req,res) => {
     return res.redirect('/properties');
   }
 
+
   const bookings = await prisma.booking.findMany({
     where:
         {
@@ -252,8 +283,17 @@ app.get('/properties/:id', requireAuth, async(req,res) => {
         { checkInDate: 'asc'},
   });
 
+    // Expand each booking's [checkIn, checkOut) range into individual day strings
+  // so the calendar can mark them. Checkout day is NOT occupied (half-open interval).
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  const occupied = [];
+  bookings.forEach(b => {
+    for (let d = new Date(b.checkInDate); d < b.checkOutDate; d = new Date(d.getTime() + MS_PER_DAY)) {
+      occupied.push(d.toISOString().split('T')[0]);   // "2026-09-11"
+    }
+  });
 
-  return res.render('propertyDetails', { property: property, bookings: bookings, error: null} );
+  return res.render('propertyDetails', { property: property, bookings: bookings, occupied: occupied, error: null} );
 
 });
 
@@ -271,7 +311,7 @@ app.get('/properties/:id/edit', requireAuth, async (req, res) => {
 });
 
 
-app.post('/properties/:id/edit', requireAuth, async (req, res) => {
+app.post('/properties/:id/edit', requireAuth, upload.single('photo'), async (req, res) => {
 
   // We get which property from the URL - but comes as text so we need to parse it
   const id = parseInt(req.params.id);
@@ -307,7 +347,7 @@ app.post('/properties/:id/edit', requireAuth, async (req, res) => {
         return res.render('editProperty', { property: property, error: 'Price must be greater than zero' });
   }
 
-  await prisma.property.update({ where: { id: id }, data: {propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price }})
+  await prisma.property.update({ where: { id: id }, data: {propertyName: pname, streetAddress: street, city: city, cap: cap, type: type, province: province, country: country, maxGuests: maxGuests, price: price, photoPath: req.file ? req.file.filename : property.photoPath, }})
   // Redirects to properties listing
   return res.redirect('/properties');
 });

@@ -1,28 +1,27 @@
 <%- include('head', { title: 'My Bookings' }) -%>
 
-
 <h1>My Bookings</h1>
-<a href="/properties">Make a new Booking</a>
+<a href="/properties" class="btn">Make a new Booking</a>
+
 <% if (bookings.length === 0) { %>
     <p>You haven't made any bookings yet!</p>
 <% } else { %>
     <% bookings.forEach(booking => { %>
         <div class="card">
-            <p>Property: <%= booking.property.propertyName %></p>
-            <p>Check-In Date: <%= booking.checkInDate.toLocaleDateString('it-IT') %></p>
-            <p>Check-Out Date: <%= booking.checkOutDate.toLocaleDateString('it-IT') %></p>
-            <p class="status">Status: <%= booking.status %></p>
-            <div class="card">
-                <p>Guests: <%= booking.numberGuests %></p>
-                <p>Price: €<%= booking.bookingPrice %></p>
-            </div>
-            <div class="card">
-                <% if (booking.status !== 'CANCELLED') { %>
-                <form method="post" action="/bookings/<%= booking.id %>/cancel">
-                    <button type="submit" class="danger">Cancel this booking</button>
-                </form>
-                <% } %>
-            </div>
+            <h3><%= booking.property.propertyName %></h3>
+            <p>
+                <span class="status <%= booking.status.toLowerCase() %>"><%= booking.status %></span>
+            </p>
+            <p><%= booking.checkInDate.toLocaleDateString('it-IT') %> → <%= booking.checkOutDate.toLocaleDateString('it-IT') %></p>
+            <p>Guests: <strong><%= booking.numberGuests %></strong> · Total: <strong>€<%= booking.bookingPrice %></strong></p>
+
+            <% if (booking.status !== 'CANCELLED') { %>
+                <div class="actions">
+                    <form method="post" action="/bookings/<%= booking.id %>/cancel">
+                        <button type="submit" class="danger">Cancel this booking</button>
+                    </form>
+                </div>
+            <% } %>
         </div>
     <% }); %>
 <% } %>

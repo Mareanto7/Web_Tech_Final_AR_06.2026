@@ -4,25 +4,27 @@
     --card: #ffffff;
     --muted: #6b6b6b;
     --line: #e2e0dc;
-    --accent: #b8f2a5;
+    --accent: #2d6a4f;
     --danger: #b23b3b;
     --ink: #000000;
 }
 
 * { box-sizing: border-box; }
 
-
 body {
-    margin: 0;
+    margin: 0 auto;
     padding: 2rem;
     max-width: 900px;
-    margin-inline: auto;
-    font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     color: var(--ink);
     background: var(--bg);
 }
+body > .btn { align-self: flex-start; }
 
-h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+h1 { font-size: 1.6rem; margin-bottom: 1rem; }
 h2 { font-size: 1.2rem; margin-top: 2rem; }
 h3 { font-size: 1.1rem; margin-top: 1.5rem; }
 
@@ -32,15 +34,6 @@ nav a:hover { text-decoration: underline; }
 
 hr { border: none; border-top: 1px solid var(--line); margin: 1.5rem 0; }
 
-/* Cards: any div directly inside body that holds a listing */
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1rem;
-}
-.card p { margin: 0.25rem 0; }
 
 /* Forms */
 form { margin: 1rem 0; }
@@ -53,10 +46,11 @@ input, select {
   background: #fff;
 }
 input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+form .card { max-width: 500px; }
 
 button, input[type="submit"] {
     padding: 0.5rem 1rem;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 6px;
     background: var(--accent);
     color: #ffffffff;
@@ -66,9 +60,6 @@ button, input[type="submit"] {
 button:hover { opacity: 0.9; }
 button.danger { background: var(--danger); }
 
-/* Search bar: inputs side by side */
-.filters { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
-
 /* Status labels */
 .status { font-size: 0.8rem; padding: 0.15rem 0.5rem; border-radius: 999px; background: var(--line); }
 
@@ -76,4 +67,157 @@ button.danger { background: var(--danger); }
 .success { color: var(--accent); }
 .muted { color: var(--muted); font-size: 0.9rem; }
 
-footer { margin-top: 3rem; font-size: 0.85rem; color: var(--muted); }
+.actions { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
+.actions form { margin: 0; }
+
+/* Cards: any div directly inside body that holds a listing */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.card p { margin: 0.35rem 0; }
+.card a {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+}
+.card a:hover { opacity: 0.9; text-decoration: none; }
+.status.published, .status.confirmed { background: #d8f3dc; color: #1b4332; }
+
+.card.listing {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+.card.listing .thumb { flex-shrink: 0; margin-bottom: 0; }
+.card.listing > div { flex: 1; }
+
+.card h3 { margin: 0 0 0.5rem; font-size: 1.15rem; }
+.card p { margin: 0.35rem 0; color: var(--muted); }
+.card p strong { color: var(--ink); }
+
+/* Search bar: inputs side by side */
+.filters { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+.filters > div { display: flex; flex-direction: column; }
+.filters input, .filters select { width: 160px; }
+.filters > div:last-child button,
+.filters > div:last-child a {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  line-height: 1;
+  margin-top: 0;
+}
+.filters > div:last-child {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+button, .btn { white-space: nowrap; }
+
+/* Statuses Style */
+.status.draft, .status.pending { background: #ffeeba; color: #7a5b00; }
+.status.cancelled { background: #f8d7da; color: #721c24; }
+
+/* List Styles */
+.dates { list-style: none; padding: 0; margin: 0; }
+.dates li {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: var(--bg);
+  margin-bottom: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Actions buttons */
+.actions a {
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+}
+.actions a:hover { opacity: 0.9; text-decoration: none; }
+.actions button, .actions a {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  line-height: 1;
+  margin-top: 0;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+}
+.btn:hover { opacity: 0.9; text-decoration: none; }
+
+/* only standalone page-level buttons get the bottom gap */
+h1 + .btn { margin-bottom: 1.5rem; }
+
+/* Pic settings */
+.thumb {
+  display: block;
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.hero {
+  display: block;
+  width: 100%;
+  max-height: 350px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+}
+
+/* Calendar Styling */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+.dow { font-size: 0.75rem; color: var(--muted); text-align: center; }
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.day.free { background: #d8f3dc; color: #1b4332; }
+.day.booked { background: #f8d7da; color: #721c24; }
+.legend { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; }
+
+footer { margin-top: auto; padding-top: 3rem; font-size: 0.85rem; color: var(--muted); text-align: center; }
+
+nav button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+nav button:hover { text-decoration: underline; opacity: 1; }
