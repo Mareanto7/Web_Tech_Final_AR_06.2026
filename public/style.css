@@ -1,0 +1,79 @@
+
+:root {
+    --bg: #faf9f7;
+    --card: #ffffff;
+    --muted: #6b6b6b;
+    --line: #e2e0dc;
+    --accent: #b8f2a5;
+    --danger: #b23b3b;
+    --ink: #000000;
+}
+
+* { box-sizing: border-box; }
+
+
+body {
+    margin: 0;
+    padding: 2rem;
+    max-width: 900px;
+    margin-inline: auto;
+    font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+}
+
+h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+h2 { font-size: 1.2rem; margin-top: 2rem; }
+h3 { font-size: 1.1rem; margin-top: 1.5rem; }
+
+nav { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+nav a { color: var(--accent); text-decoration: none; }
+nav a:hover { text-decoration: underline; }
+
+hr { border: none; border-top: 1px solid var(--line); margin: 1.5rem 0; }
+
+/* Cards: any div directly inside body that holds a listing */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.card p { margin: 0.25rem 0; }
+
+/* Forms */
+form { margin: 1rem 0; }
+label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.2rem; }
+input, select {
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  background: #fff;
+}
+input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+button, input[type="submit"] {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #ffffffff;
+    font: inherit;
+    cursor: pointer;
+}
+button:hover { opacity: 0.9; }
+button.danger { background: var(--danger); }
+
+/* Search bar: inputs side by side */
+.filters { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+
+/* Status labels */
+.status { font-size: 0.8rem; padding: 0.15rem 0.5rem; border-radius: 999px; background: var(--line); }
+
+.error { color: var(--danger); }
+.success { color: var(--accent); }
+.muted { color: var(--muted); font-size: 0.9rem; }
+
+footer { margin-top: 3rem; font-size: 0.85rem; color: var(--muted); }

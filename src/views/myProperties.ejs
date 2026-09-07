@@ -7,18 +7,18 @@
     <p>You haven't listed any properties yet!</p>
 <%} else {%>
     <% properties.forEach(property => { %>
-        <div>
+        <div class="card">
             <p>Property Name: <%= property.propertyName %></p>
             <p>Status: <%= property.isActive ? 'Published' : 'Draft' %></p>
-            <div>
+            <div class="card">
                 <p>Address: <%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
                 <p>Province and Country: <%= property.province %>, <%= property.country %></p>
             </div>
-            <div>
+            <div class="card">
                 <p>Max Guests: <%= property.maxGuests %></p>
                 <p>Base Price: €<%= property.price %></p>
             </div>
-            <div>
+            <div class="card">
                 <a href="/properties/<%= property.id %>/edit">Edit</a>
 
                 <% if (property.isActive) { %>

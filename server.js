@@ -36,6 +36,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(express.static('public'));
+
 function requireAuth(req, res, next) {
   if (req.session.userId){
     next();

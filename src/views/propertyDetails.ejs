@@ -3,11 +3,11 @@
 
 <h1>Property Details <%= property.propertyName %></h1>
 <p>Property Name: <%= property.propertyName %></p>
-<div>
+<div class="card">
     <p>Address: <%= property.streetAddress %> - <%= property.cap %>, <%= property.city %></p>
     <p>Province and Country: <%= property.province %>, <%= property.country %></p>
 </div>
-<div>
+<div class="card">
     <p>Maximum Number of Guests: <%= property.maxGuests %></p>
     <p>Price per night: €<%= property.price %></p>
 </div>
@@ -18,12 +18,14 @@
     <p>You haven't received any bookings yet for the selected property - Fully Available!</p>
 <%} else {%>
     <h3>Occupied Nights:</h3>
-    <ul>
-        <% bookings.forEach(property => { %>
-            <li>Check-In Date: <%= booking.checkInDate.toLocaleDateString('it-IT') %> → Check-Out Date: <%= booking.checkOutDate.toLocaleDateString('it-IT') %></li>
-        <% }); %>
-    </ul>
- <div>
+    <div class="card">
+        <ul>
+            <% bookings.forEach(property => { %>
+                <li>Check-In Date: <%= booking.checkInDate.toLocaleDateString('it-IT') %> → Check-Out Date: <%= booking.checkOutDate.toLocaleDateString('it-IT') %></li>
+            <% }); %>
+        </ul>
+    </div>
+ <div class="card">
     <% if (property.ownerId !== userId) { %>
         <a href="/properties/<%= property.id %>/book">Book this property</a>
     <% else { %>

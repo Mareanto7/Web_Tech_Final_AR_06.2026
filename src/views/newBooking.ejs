@@ -9,36 +9,52 @@
     <p>Max guests: <%= property.maxGuests %></p>
 
     <form method="post" action="/properties/<%= property.id %>/book">
-        <p>
-            <label for="checkInDate">Check-in Date</label>
-            <input type="date" name="checkInDate" min="<%= new Date().toLocaleDateString('it-IT').split('T')[0] %>" id="checkInDate" required>
-        </p>
-        <p>
-            <label for="checkOutDate">Check-out Date</label>
-            <input type="date" name="checkOutDate" min="<%= new Date().toLocaleDateString('it-IT').split('T')[0] %>" id="checkOutDate" required>
-        </p>
-        <p>
-            <label for="numberGuests">Number of Guests: </label>
-            <input type="number" name="numberGuests" min="1" max="<%= property.maxGuests %>" id="numberGuests" required>
-        </p>
-        <p>Price per night: €<%= property.price %></p>
-        <p>Estimated Total: €<span id="total">-</span></p>
-        <p>
-            <select name="channel" id="channel" required>
-                <option value="">-- How did you find us? --</option>
-                    <option value="GOOGLE">Google</option>
-                    <option value="INSTAGRAM">Instagram</option>
-                    <option value="FACEBOOK">Facebook</option>
-                    <option value="TIKTOK">TikTok</option>
-                    <option value="WORD_OF_MOUTH">Word of Mouth</option>
-                    <option value="BOOKING">Booking.com</option>
-                    <option value="AIRBNB">AirBnB</option>
-                    <option value="OTHER">Other</option>
-            </select>
-        </p>
-        <p>
-            <input type="submit" value="Book a Stay">
-        </p>
+        <div class="card">
+            <p>
+                <label for="checkInDate">Check-in Date</label>
+                <input type="date" name="checkInDate" min="<%= new Date().toLocaleDateString('it-IT').split('T')[0] %>" id="checkInDate" required>
+            </p>
+        </div>
+
+        <div class="card">
+            <p>
+                <label for="checkOutDate">Check-out Date</label>
+                <input type="date" name="checkOutDate" min="<%= new Date().toLocaleDateString('it-IT').split('T')[0] %>" id="checkOutDate" required>
+            </p>
+        </div>
+
+        <div class="card">
+            <p>
+                <label for="numberGuests">Number of Guests: </label>
+                <input type="number" name="numberGuests" min="1" max="<%= property.maxGuests %>" id="numberGuests" required>
+            </p>
+        </div>
+
+        <div class="card">
+            <p>Price per night: €<%= property.price %></p>
+            <p>Estimated Total: €<span id="total">-</span></p>
+        </div>
+        <div class="card">
+            <p>
+                <select name="channel" id="channel" required>
+                    <option value="">-- How did you find us? --</option>
+                        <option value="GOOGLE">Google</option>
+                        <option value="INSTAGRAM">Instagram</option>
+                        <option value="FACEBOOK">Facebook</option>
+                        <option value="TIKTOK">TikTok</option>
+                        <option value="WORD_OF_MOUTH">Word of Mouth</option>
+                        <option value="BOOKING">Booking.com</option>
+                        <option value="AIRBNB">AirBnB</option>
+                        <option value="OTHER">Other</option>
+                </select>
+            </p>
+        </div>
+
+        <div class="card">
+            <p>
+                <input type="submit" value="Book a Stay">
+            </p>
+        </div>
     </form>
 
     <script>

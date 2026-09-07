@@ -5,25 +5,40 @@
         <p class="error"><%= error %></p>
     <% } %>
     <form method="post" action="/register">
-        <p>
-            <label for="name">Name:</label>
-            <input type="text" name="name" id="name">
-        </p>
+        <div class="card">
+            <p>
+                <label for="name">Name:</label>
+                <input type="text" name="name" id="name">
+            </p>
+        </div>
+
+        <div class="card">
         <p>
             <label for="surname">Surname:</label>
             <input type="text" name="surname" id="surname">
         </p>
-        <p>
-            <label for="email">E-mail:</label>
-            <input type="email" name="email" id="email">
-        </p>
-        <p>
-            <label for="password">Password:</label>
-            <input type="text" name="password" id="password">
-        </p>
-        <p>
-            <input type="submit" value="Register">
-        </p>
+        </div>
+
+        <div class="card">
+            <p>
+                <label for="email">E-mail:</label>
+                <input type="email" name="email" id="email">
+            </p>
+        </div>
+
+        <div class="card">
+            <p>
+                <label for="password">Password:</label>
+                <input type="text" name="password" id="password">
+            </p>
+        </div>
+
+        <div class="card">
+            <p>
+                <input type="submit" value="Register">
+            </p>
+        </div>
+
     </form>
 
     <%- include('foot') -%>
